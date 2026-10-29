@@ -1,13 +1,12 @@
 {
   "name": "Wetterpilot Pro",
   "short_name": "Wetterpilot",
-  "description": "Präzises Wetter und Regenradar",
+  "description": "Wetter App",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
-  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "https://img.icons8.com/color/192/sun.png",
