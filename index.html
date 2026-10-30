@@ -615,8 +615,12 @@
       loadWeather(currentLat, currentLon, currentName, true);
     }, 10 * 60 * 1000);
 
-    // Initialisierung beim Start
-    loadWeather(currentLat, currentLon, currentName);
+    // Initialisierung beim Start: Automatischer GPS-Start wie bei wetter.com
+    if (navigator.geolocation) {
+      getLocation();
+    } else {
+      loadWeather(currentLat, currentLon, currentName);
+    }
   </script>
 </body>
 </html>
