@@ -403,14 +403,14 @@
             }
 
             const alertCard = document.createElement('div');
-            alertCard.className = `border ${borderClass} rounded-3xl p-4 flex items-start gap-3.5 shadow-xl backdrop-blur-md`;
+            alertCard.className = `border ${borderClass} rounded-3xl p-5 md:p-6 flex items-start gap-4 shadow-xl backdrop-blur-md`;
             alertCard.innerHTML = `
-              <span class="text-2xl mt-0.5 select-none">⚠️</span>
+              <span class="text-3xl md:text-4xl mt-0.5 select-none">⚠️</span>
               <div class="flex-1">
-                <div class="text-xs font-bold ${textClass} uppercase tracking-wider mb-1">${title}</div>
-                ${timeText ? `<div class="text-[11px] text-slate-400 font-mono mb-2">${timeText}</div>` : ''}
-                ${desc ? `<div class="text-sm text-slate-200 font-medium leading-relaxed mb-2">${desc}</div>` : ''}
-                ${instruction ? `<div class="text-xs text-slate-300 bg-slate-900/60 border border-slate-700/50 rounded-xl p-2.5 mt-2"><strong class="text-slate-100">Handlungsempfehlung:</strong> ${instruction}</div>` : ''}
+                <div class="text-base md:text-lg font-extrabold ${textClass} uppercase tracking-wider mb-1.5">${title}</div>
+                ${timeText ? `<div class="text-xs md:text-sm text-slate-300 font-mono mb-3 bg-slate-900/50 px-2.5 py-1 rounded-lg inline-block">${timeText}</div>` : ''}
+                ${desc ? `<div class="text-base text-slate-100 font-medium leading-relaxed mb-3">${desc}</div>` : ''}
+                ${instruction ? `<div class="text-sm md:text-base text-slate-200 bg-slate-900/80 border border-slate-700/60 rounded-2xl p-3.5 mt-2.5 leading-relaxed"><strong class="text-white font-semibold">Handlungsempfehlung:</strong> ${instruction}</div>` : ''}
               </div>
             `;
             warningBox.appendChild(alertCard);
@@ -571,8 +571,8 @@
       showNotification(`Ort ausgewählt: ${name}`);
     }
 
-    // Standort per Browser-GPS inklusive automatischer Ortserkennung
-    function getLocation() {
+    // Standort per Browser-GPS (inkl. automatischer Ortsnamen-Erkennung)
+    async function getLocation() {
       if (!navigator.geolocation) {
         showNotification("Standortbestimmung wird vom Browser nicht unterstützt.", "error");
         return;
@@ -582,32 +582,31 @@
         async (pos) => {
           const lat = pos.coords.latitude;
           const lon = pos.coords.longitude;
-          let detectedName = "Mein Standort";
+          loadWeather(lat, lon, "Mein Standort 📍");
 
           try {
             const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=de`);
-            if (geoRes.ok) {
-              const geoData = await geoRes.json();
-              const stadt = geoData.city || geoData.locality || geoData.principalSubdivision;
-              const bundesland = geoData.principalSubdivision;
-              
-              if (stadt && bundesland && stadt !== bundesland) {
-                detectedName = `${stadt}, ${bundesland}`;
-              } else if (stadt) {
-                detectedName = stadt;
-              }
+            const geoData = await geoRes.json();
+            const place = geoData.locality || geoData.city || geoData.principalSubdivision;
+            const region = geoData.principalSubdivision;
+            
+            let detectedName = "Mein Standort 📍";
+            if (place && region && place !== region) {
+              detectedName = `${place}, ${region}`;
+            } else if (place) {
+              detectedName = place;
             }
-          } catch (e) {
-            // Falls Geocoding fehlschlägt, Fallback auf "Mein Standort"
-          }
 
-          loadWeather(lat, lon, detectedName);
-          showNotification(`Standort erkannt: ${detectedName}`);
+            loadWeather(lat, lon, detectedName);
+            showNotification(`Standort erkannt: ${detectedName}!`);
+          } catch (e) {
+            showNotification("Standort geladen!");
+          }
         },
         () => {
           showNotification("Standortzugriff verweigert oder Signal fehlt.", "error");
         },
-        { timeout: 10000 }
+        { timeout: 10000, enableHighAccuracy: true }
       );
     }
 
