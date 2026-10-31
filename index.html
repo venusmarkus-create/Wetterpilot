@@ -577,7 +577,7 @@
       showNotification(`Ort ausgewählt: ${name}`);
     }
 
-    // Standort per Browser-GPS (inkl. automatischer Ortsnamen-Erkennung)
+    // Standort per Browser-GPS (Dynamische Stadtteil-Erkennung für München & Laim-Filter)
     async function getLocation() {
       if (!navigator.geolocation) {
         showNotification("Standortbestimmung wird vom Browser nicht unterstützt.", "error");
@@ -593,14 +593,23 @@
           try {
             const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=de`);
             const geoData = await geoRes.json();
-            const place = geoData.locality || geoData.city || geoData.principalSubdivision;
-            const region = geoData.principalSubdivision;
             
             let detectedName = "Mein Standort 📍";
-            if (place && region && place !== region) {
-              detectedName = `${place}, ${region}`;
-            } else if (place) {
-              detectedName = place;
+
+            // Wenn der Standort in München liegt:
+            if (geoData.city === "München" || geoData.locality === "Friedenheim" || geoData.locality === "St. Ulrich") {
+              let viertel = geoData.locality || "";
+
+              // Unterbezirke von Laim zusammenfassen
+              if (viertel === "Friedenheim" || viertel === "St. Ulrich") {
+                viertel = "Laim";
+              }
+
+              // Stadtteil anzeigen (z. B. Laim, Schwabing, Pasing), sonst München
+              detectedName = (viertel && viertel !== "München") ? viertel : "München";
+            } else {
+              // Außerhalb Münchens ganz normale Stadt / Gemeinde anzeigen
+              detectedName = geoData.city || geoData.locality || geoData.principalSubdivision || "Mein Standort 📍";
             }
 
             loadWeather(lat, lon, detectedName);
