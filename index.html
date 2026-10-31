@@ -262,6 +262,59 @@
       </div>
     </div>
 
+    <!-- Bergwetter & Schneehöhen -->
+    <div class="glass-panel rounded-3xl p-5 mb-6 shadow-xl border border-slate-700/60">
+      <div class="flex items-center justify-between mb-3.5">
+        <h3 class="text-white font-bold text-sm flex items-center gap-2">
+          🏔️ Bergwetter & Schneehöhen
+        </h3>
+        <span class="text-xs bg-sky-500/15 text-sky-400 px-2.5 py-0.5 rounded-full border border-sky-500/30 font-mono">DWD / Open-Meteo</span>
+      </div>
+
+      <!-- Schnellwahl Berge -->
+      <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none text-xs">
+        <button onclick="ladeBergWetter('Kampenwand', 47.7554, 12.3663, 1669)" class="px-3.5 py-2 bg-slate-800 hover:bg-sky-600 text-slate-200 hover:text-white rounded-xl whitespace-nowrap transition border border-borderDark cursor-pointer active:scale-95">
+          Kampenwand (1.669 m)
+        </button>
+        <button onclick="ladeBergWetter('Winklmoosalm', 47.6575, 12.5833, 1450)" class="px-3.5 py-2 bg-slate-800 hover:bg-sky-600 text-slate-200 hover:text-white rounded-xl whitespace-nowrap transition border border-borderDark cursor-pointer active:scale-95">
+          Winklmoosalm (1.450 m)
+        </button>
+        <button onclick="ladeBergWetter('Wendelstein', 47.7036, 12.0125, 1838)" class="px-3.5 py-2 bg-slate-800 hover:bg-sky-600 text-slate-200 hover:text-white rounded-xl whitespace-nowrap transition border border-borderDark cursor-pointer active:scale-95">
+          Wendelstein (1.838 m)
+        </button>
+        <button onclick="ladeBergWetter('Brauneck', 47.6631, 11.5239, 1555)" class="px-3.5 py-2 bg-slate-800 hover:bg-sky-600 text-slate-200 hover:text-white rounded-xl whitespace-nowrap transition border border-borderDark cursor-pointer active:scale-95">
+          Brauneck (1.555 m)
+        </button>
+        <button onclick="ladeBergWetter('Zugspitze', 47.4211, 10.9853, 2962)" class="px-3.5 py-2 bg-slate-800 hover:bg-sky-600 text-slate-200 hover:text-white rounded-xl whitespace-nowrap transition border border-borderDark cursor-pointer active:scale-95">
+          Zugspitze (2.962 m)
+        </button>
+      </div>
+
+      <!-- Anzeige-Kacheln für Bergdaten -->
+      <div id="berg-daten" class="mt-3 grid grid-cols-2 gap-2.5 text-center">
+        <div class="bg-slate-900/70 p-3 rounded-2xl border border-borderDark/60">
+          <div class="text-xs text-slate-400 font-medium">Gesamtschneehöhe</div>
+          <div id="berg-schnee" class="text-xl md:text-2xl font-extrabold text-sky-400 mt-0.5">-- cm</div>
+        </div>
+        <div class="bg-slate-900/70 p-3 rounded-2xl border border-borderDark/60">
+          <div class="text-xs text-slate-400 font-medium">Neuschnee (24h)</div>
+          <div id="berg-neuschnee" class="text-xl md:text-2xl font-extrabold text-teal-400 mt-0.5">-- cm</div>
+        </div>
+        <div class="bg-slate-900/70 p-3 rounded-2xl border border-borderDark/60">
+          <div class="text-xs text-slate-400 font-medium">Gipfel-Temperatur</div>
+          <div id="berg-temp" class="text-lg md:text-xl font-bold text-white mt-0.5">-- °C</div>
+        </div>
+        <div class="bg-slate-900/70 p-3 rounded-2xl border border-borderDark/60">
+          <div class="text-xs text-slate-400 font-medium">Wind am Gipfel</div>
+          <div id="berg-wind" class="text-lg md:text-xl font-bold text-white mt-0.5">-- km/h</div>
+        </div>
+      </div>
+      
+      <div id="berg-status" class="text-xs text-center text-slate-400 mt-3 font-medium">
+        Tippe auf einen Berg oben, um Live-Schneedaten abzurufen.
+      </div>
+    </div>
+
     <!-- 24-Stunden Forecast Karussell -->
     <div class="glass-panel rounded-3xl p-5 mb-6 shadow-xl">
       <div class="text-sm font-semibold text-slate-300 mb-3.5 flex items-center justify-between">
@@ -489,6 +542,39 @@
       }
     }
 
+    // Bergwetter & Schneehöhen über Open-Meteo abrufen
+    async function ladeBergWetter(name, lat, lon, hoehe) {
+      const statusEl = document.getElementById('berg-status');
+      statusEl.innerHTML = `Lade Daten für <strong class="text-sky-400">${name}</strong>...`;
+
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${hoehe}&current=temperature_2m,wind_speed_10m&hourly=snow_depth,snowfall&timezone=auto&forecast_days=1`;
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Netzwerkfehler");
+        const data = await response.json();
+
+        const temp = Math.round(data.current.temperature_2m);
+        const wind = Math.round(data.current.wind_speed_10m);
+        
+        const aktuellerSchneeMeter = data.hourly.snow_depth[0] || 0;
+        const schneeCm = Math.round(aktuellerSchneeMeter * 100);
+
+        const neuschneeCm = Math.round(data.hourly.snowfall.reduce((a, b) => a + b, 0));
+
+        document.getElementById('berg-temp').innerText = `${temp} °C`;
+        document.getElementById('berg-wind').innerText = `${wind} km/h`;
+        document.getElementById('berg-schnee').innerText = `${schneeCm} cm`;
+        document.getElementById('berg-neuschnee').innerText = `+${neuschneeCm} cm`;
+
+        statusEl.innerHTML = `<span class="text-emerald-400 font-semibold">${name} (${hoehe} m)</span> live synchronisiert`;
+        showNotification(`Bergdaten für ${name} geladen!`);
+      } catch (error) {
+        statusEl.innerText = 'Fehler beim Laden der Bergdaten.';
+        showNotification("Fehler beim Abruf der Schneedaten.", "error");
+      }
+    }
+
     async function loadWeather(lat, lon, name, isBackground = false) {
       currentLat = lat;
       currentLon = lon;
@@ -707,7 +793,7 @@
       showNotification(`Ort ausgewählt: ${name}`);
     }
 
-    // Neuer, sauberer Standort-Ermittler (wetter.com-Stil mit Stadtbezirk + Stadt)
+    // Standort-Ermittler (Stadtbezirk + Stadt)
     async function getLocation() {
       if (!navigator.geolocation) {
         showNotification("Standortbestimmung wird vom Browser nicht unterstützt.", "error");
@@ -721,7 +807,6 @@
           loadWeather(lat, lon, "Mein Standort 📍");
 
           try {
-            // Zoomstufe 13 blockiert POIs/Haltestellen und liefert saubere Bezirke
             const geoRes = await fetch(
               `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&zoom=13&format=json&addressdetails=1&accept-language=de`
             );
@@ -731,7 +816,6 @@
             const hauptStadt = addr.city || addr.town || addr.municipality || addr.village || "";
             let bezirk = addr.city_district || addr.borough || addr.suburb || "";
 
-            // Bekannte historische Kleinteile im Laimer Bereich bereinigen
             if (bezirk.toLowerCase() === "friedenheim" || bezirk.toLowerCase() === "st. ulrich") {
               bezirk = "Laim";
             }
@@ -742,10 +826,8 @@
             let detectedName = "Mein Standort 📍";
 
             if (bezirk && hauptStadt && bezirk.toLowerCase() !== hauptStadt.toLowerCase()) {
-              // z.B. "Laim (München)" oder "Moosach (München)"
               detectedName = `${bezirk} (${hauptStadt})`;
             } else if (hauptStadt) {
-              // z.B. "Prien am Chiemsee", "Rosenheim"
               detectedName = hauptStadt;
             } else if (addr.county) {
               detectedName = addr.county;
