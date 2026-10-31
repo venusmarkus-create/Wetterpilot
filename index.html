@@ -104,11 +104,7 @@
       }
     }
 
-    /* ========================================================
-       DYNAMISCHE HINTERGRÜNDE DER HAUPTKARTE
-       ======================================================== */
-    
-    /* 1. Regen-Effekt */
+    /* DYNAMISCHE HINTERGRÜNDE DER HAUPTKARTE */
     .bg-rain-effect {
       background-image: 
         linear-gradient(to bottom, rgba(56, 189, 248, 0.25) 0%, rgba(56, 189, 248, 0) 75%),
@@ -123,7 +119,6 @@
       100% { background-position: 0 0, -20px 140px, -30px 180px, -25px 160px; }
     }
 
-    /* 2. Schnee-Effekt */
     .bg-snow-effect {
       background-image: 
         radial-gradient(circle 3px at 25% 20%, rgba(255, 255, 255, 0.8), transparent),
@@ -138,7 +133,6 @@
       100% { background-position: 25px 140px, -35px 180px, 40px 220px, -20px 160px; }
     }
 
-    /* 3. Gewitter-Hintergrund */
     .bg-thunder-effect {
       animation: thunderSky 6s ease-in-out infinite;
     }
@@ -148,7 +142,6 @@
       90% { background-color: rgba(224, 231, 255, 0.28); }
     }
 
-    /* 4. Wolken-Drift */
     .bg-cloud-drift {
       background: radial-gradient(ellipse at 30% 50%, rgba(148, 163, 184, 0.15), transparent 70%);
       animation: cloudDrift 14s ease-in-out infinite alternate;
@@ -158,7 +151,6 @@
       100% { transform: scale(1.12) translateX(25px); }
     }
 
-    /* 5. Neuer Nebel-Effekt (Trübe, waagerecht driftende Dunstschichten) */
     .bg-fog-effect {
       background: 
         radial-gradient(ellipse 350px 120px at 15% 40%, rgba(203, 213, 225, 0.22), transparent 75%),
@@ -167,17 +159,9 @@
       animation: fogMotion 18s ease-in-out infinite alternate;
     }
     @keyframes fogMotion {
-      0% { 
-        transform: scale(1) translateX(-25px); 
-        opacity: 0.65;
-      }
-      50% { 
-        opacity: 0.95; 
-      }
-      100% { 
-        transform: scale(1.15) translateX(35px); 
-        opacity: 0.75;
-      }
+      0% { transform: scale(1) translateX(-25px); opacity: 0.65; }
+      50% { opacity: 0.95; }
+      100% { transform: scale(1.15) translateX(35px); opacity: 0.75; }
     }
   </style>
 </head>
@@ -211,7 +195,7 @@
       <div class="flex gap-2.5">
         <div class="relative flex-1">
           <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 text-base select-none">🔍</span>
-          <input type="text" id="cityInput" placeholder="Ort eingeben (z. B. München, Zürich, Tokyo)..." 
+          <input type="text" id="cityInput" placeholder="Ort eingeben (z. B. München, Berlin, Hamburg)..." 
                  class="w-full bg-slate-900/90 border border-borderDark rounded-2xl pl-11 pr-4 py-3.5 text-slate-100 placeholder-slate-500 text-sm md:text-base focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/25 transition-all shadow-inner"
                  autocomplete="off"
                  onkeydown="if(event.key==='Enter') searchCity()">
@@ -241,7 +225,7 @@
     <!-- DWD Unwetterwarnungen (BrightSky API) -->
     <div id="weatherWarningBox" class="hidden mb-6 flex flex-col gap-3"></div>
 
-    <!-- Hauptkarte (Hero Weather Card mit dynamischem Wetter-Hintergrund) -->
+    <!-- Hauptkarte (Hero Weather Card) -->
     <div id="mainCard" class="bg-gradient-to-br from-[#0f1d38] via-[#101b33] to-[#0c1426] border border-borderDark rounded-3xl p-6 md:p-7 mb-6 relative overflow-hidden shadow-2xl transition-all duration-700">
       
       <!-- Dynamischer Animation-Layer -->
@@ -291,7 +275,6 @@
 
     <!-- Wetterdetails Kachel-Grid -->
     <div class="grid grid-cols-2 md:grid-cols-3 gap-3.5 mb-6">
-      <!-- Wind -->
       <div class="glass-panel rounded-2xl p-4 shadow-md flex flex-col justify-between hover:border-slate-700 transition">
         <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">Windstärke</div>
         <div class="flex items-end justify-between">
@@ -300,7 +283,6 @@
         </div>
       </div>
 
-      <!-- Luftfeuchtigkeit -->
       <div class="glass-panel rounded-2xl p-4 shadow-md flex flex-col justify-between hover:border-slate-700 transition">
         <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">Luftfeuchtigkeit</div>
         <div class="flex items-end justify-between">
@@ -309,7 +291,6 @@
         </div>
       </div>
 
-      <!-- Regenrisiko -->
       <div class="glass-panel rounded-2xl p-4 shadow-md flex flex-col justify-between hover:border-slate-700 transition">
         <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">Regenrisiko</div>
         <div class="flex items-end justify-between">
@@ -318,7 +299,6 @@
         </div>
       </div>
 
-      <!-- UV-Index -->
       <div class="glass-panel rounded-2xl p-4 shadow-md flex flex-col justify-between hover:border-slate-700 transition">
         <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">UV-Index (Max)</div>
         <div class="flex items-end justify-between">
@@ -327,7 +307,6 @@
         </div>
       </div>
 
-      <!-- Sonnenaufgang -->
       <div class="glass-panel rounded-2xl p-4 shadow-md flex flex-col justify-between hover:border-slate-700 transition">
         <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">Sonnenaufgang</div>
         <div class="flex items-end justify-between">
@@ -336,7 +315,6 @@
         </div>
       </div>
 
-      <!-- Sonnenuntergang -->
       <div class="glass-panel rounded-2xl p-4 shadow-md flex flex-col justify-between hover:border-slate-700 transition">
         <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">Sonnenuntergang</div>
         <div class="flex items-end justify-between">
@@ -374,7 +352,6 @@
   </div>
 
   <script>
-    // Lokale Persistenz
     let savedLocation = null;
     try {
       const stored = localStorage.getItem('wetterpilot_location');
@@ -387,7 +364,6 @@
     let currentLon = savedLocation ? savedLocation.lon : 11.5755;
     let currentName = savedLocation ? savedLocation.name : "München";
 
-    // Benachrichtigungssystem (Toast)
     function showNotification(message, type = 'info') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
@@ -409,7 +385,6 @@
       }, 3500);
     }
 
-    // Uhrzeit und Datumsanzeige (mit Sekundenanzeige)
     function updateClock() {
       const now = new Date();
       document.getElementById('clock').textContent = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute:'2-digit', second: '2-digit' });
@@ -418,11 +393,10 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Astronomische Mondphasen-Berechnung (Synodischer Zyklus = 29.53058867 Tage)
     function getMoonPhase() {
       const LUNAR_MONTH = 29.53058867;
       const now = new Date();
-      const refNewMoon = Date.UTC(2024, 0, 11, 11, 57, 0); // Bekannter Neumond
+      const refNewMoon = Date.UTC(2024, 0, 11, 11, 57, 0);
       const diffDays = (now.getTime() - refNewMoon) / (1000 * 60 * 60 * 24);
       const cycleDay = ((diffDays % LUNAR_MONTH) + LUNAR_MONTH) % LUNAR_MONTH;
 
@@ -445,7 +419,6 @@
       }
     }
 
-    // WMO Wettercodes Übersetzung, Icons, Animation & dynamischer Kachel-Hintergrund
     function getWeatherInfo(code) {
       const map = {
         0: { text: "Klarer Himmel", emoji: "☀️", anim: "anim-sun-spin", bgType: "sun" },
@@ -476,14 +449,12 @@
       return map[code] || { text: "Wechselhaft", emoji: "🌥️", anim: "anim-float", bgType: "clouds" };
     }
 
-    // Dynamischen Hintergrund auf der Hauptkarte setzen
     function applyDynamicCardBackground(bgType) {
       const card = document.getElementById('mainCard');
       const bgLayer = document.getElementById('weatherBgLayer');
       const glowTop = document.getElementById('glowTop');
       const glowBottom = document.getElementById('glowBottom');
 
-      // Vorherige Effekt-Klassen entfernen
       bgLayer.className = "absolute inset-0 pointer-events-none transition-all duration-700";
 
       if (bgType === 'sun') {
@@ -506,13 +477,11 @@
         glowTop.className = 'absolute -right-8 -top-8 w-56 h-56 bg-purple-600/30 rounded-full blur-3xl pointer-events-none transition-all duration-700';
         glowBottom.className = 'absolute -left-12 -bottom-12 w-48 h-48 bg-sky-400/20 rounded-full blur-3xl pointer-events-none transition-all duration-700';
       } else if (bgType === 'fog') {
-        // Neuer Nebel-Stil: Mattes Graublau mit träge driftenden Dunstschichten
         card.style.background = 'linear-gradient(135deg, #161e2b 0%, #111823 50%, #0b1017 100%)';
         bgLayer.classList.add('bg-fog-effect');
         glowTop.className = 'absolute -right-8 -top-8 w-60 h-60 bg-slate-400/15 rounded-full blur-3xl pointer-events-none transition-all duration-700';
         glowBottom.className = 'absolute -left-12 -bottom-12 w-52 h-52 bg-slate-500/10 rounded-full blur-3xl pointer-events-none transition-all duration-700';
       } else {
-        // Wolken / Standard
         card.style.background = 'linear-gradient(135deg, #0f1d38 0%, #101b33 50%, #0c1426 100%)';
         bgLayer.classList.add('bg-cloud-drift');
         glowTop.className = 'absolute -right-8 -top-8 w-52 h-52 bg-sky-500/20 rounded-full blur-3xl pointer-events-none transition-all duration-700 animate-glow-pulse';
@@ -520,7 +489,6 @@
       }
     }
 
-    // Wetter & Unwetterdaten abrufen
     async function loadWeather(lat, lon, name, isBackground = false) {
       currentLat = lat;
       currentLon = lon;
@@ -535,13 +503,11 @@
         document.getElementById('weatherDesc').textContent = "Aktualisiere Daten...";
       }
 
-      // Mondphase aktualisieren
       const moonData = getMoonPhase();
       document.getElementById('moon').textContent = moonData.text;
       document.getElementById('moonEmoji').textContent = moonData.emoji;
       document.getElementById('moonSub').textContent = `Tag ${Math.round(moonData.cycle)} des 29,5-Tage-Zyklus`;
 
-      // 1. Unwetterwarnungen (BrightSky API / DWD)
       try {
         const warnRes = await fetch(`https://api.brightsky.dev/alerts?lat=${lat}&lon=${lon}`);
         const warnData = await warnRes.json();
@@ -549,7 +515,6 @@
 
         if (warnData && warnData.alerts && warnData.alerts.length > 0) {
           warningBox.innerHTML = '';
-
           warnData.alerts.forEach(alert => {
             const title = alert.headline_de || alert.event_de || "Amtliche Warnung";
             const desc = alert.description_de || "";
@@ -587,7 +552,6 @@
             `;
             warningBox.appendChild(alertCard);
           });
-
           warningBox.classList.remove('hidden');
         } else {
           warningBox.innerHTML = '';
@@ -597,7 +561,6 @@
         document.getElementById('weatherWarningBox').classList.add('hidden');
       }
 
-      // 2. Wettervorhersage abrufen (Open-Meteo)
       const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code&daily=sunrise,sunset,uv_index_max,precipitation_probability_max,temperature_2m_max,temperature_2m_min,weather_code&timezone=auto`;
 
       try {
@@ -605,7 +568,6 @@
         if (!res.ok) throw new Error("Fehler beim Abruf der Wetterdaten.");
         const data = await res.json();
 
-        // Aktuelle Wetterwerte
         const cur = data.current;
         const weatherInfo = getWeatherInfo(cur.weather_code);
 
@@ -613,12 +575,10 @@
         document.getElementById('feelsLike').textContent = "Gefühlt wie " + Math.round(cur.apparent_temperature) + "°";
         document.getElementById('weatherDesc').textContent = weatherInfo.text;
         
-        // Dynamische Animation des Haupt-Symbols
         const emojiEl = document.getElementById('weatherEmoji');
         emojiEl.textContent = weatherInfo.emoji;
         emojiEl.className = `text-6xl md:text-7xl filter drop-shadow-2xl select-none ${weatherInfo.anim}`;
 
-        // Dynamischen Hintergrund der Hauptkarte aktivieren
         applyDynamicCardBackground(weatherInfo.bgType);
 
         document.getElementById('wind').textContent = Math.round(cur.wind_speed_10m) + " km/h";
@@ -639,7 +599,6 @@
         document.getElementById('sunrise').textContent = formatTime(data.daily.sunrise[0]);
         document.getElementById('sunset').textContent = formatTime(data.daily.sunset[0]);
 
-        // Stündlicher Verlauf (24h)
         const hourlyContainer = document.getElementById('hourlyContainer');
         hourlyContainer.innerHTML = "";
         
@@ -673,7 +632,6 @@
           hourlyContainer.appendChild(hourDiv);
         }
 
-        // 7-Tage-Trend
         const weeklyContainer = document.getElementById('weeklyContainer');
         weeklyContainer.innerHTML = "";
         const days = data.daily.time;
@@ -721,7 +679,6 @@
       }
     }
 
-    // Ortssuche via Open-Meteo Geocoding
     async function searchCity() {
       const q = document.getElementById('cityInput').value.trim();
       if (!q) {
@@ -745,13 +702,12 @@
       }
     }
 
-    // Schnellwahl-Handler
     function loadQuickCity(lat, lon, name) {
       loadWeather(lat, lon, name);
       showNotification(`Ort ausgewählt: ${name}`);
     }
 
-    // Standort per Browser-GPS (Dynamische Stadtteil-Erkennung für München & Laim/Moosach-Filter)
+    // Neuer, sauberer Standort-Ermittler (wetter.com-Stil mit Stadtbezirk + Stadt)
     async function getLocation() {
       if (!navigator.geolocation) {
         showNotification("Standortbestimmung wird vom Browser nicht unterstützt.", "error");
@@ -765,30 +721,34 @@
           loadWeather(lat, lon, "Mein Standort 📍");
 
           try {
-            const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=de`);
+            // Zoomstufe 13 blockiert POIs/Haltestellen und liefert saubere Bezirke
+            const geoRes = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&zoom=13&format=json&addressdetails=1&accept-language=de`
+            );
             const geoData = await geoRes.json();
-            
+            const addr = geoData.address || {};
+
+            const hauptStadt = addr.city || addr.town || addr.municipality || addr.village || "";
+            let bezirk = addr.city_district || addr.borough || addr.suburb || "";
+
+            // Bekannte historische Kleinteile im Laimer Bereich bereinigen
+            if (bezirk.toLowerCase() === "friedenheim" || bezirk.toLowerCase() === "st. ulrich") {
+              bezirk = "Laim";
+            }
+            if (bezirk.toLowerCase().includes("moosach")) {
+              bezirk = "Moosach";
+            }
+
             let detectedName = "Mein Standort 📍";
 
-            // Wenn der Standort in München liegt:
-            if (geoData.city === "München" || geoData.locality === "Friedenheim" || geoData.locality === "St. Ulrich") {
-              let viertel = geoData.locality || "";
-
-              // Unterbezirke von Laim zusammenfassen
-              if (viertel === "Friedenheim" || viertel === "St. Ulrich") {
-                viertel = "Laim";
-              }
-
-              // Unterbezirke von Moosach zusammenfassen
-              if (viertel.includes("Olympia") || viertel === "Pressestadt" || viertel === "Borstei" || viertel === "Hartmannshofen") {
-                viertel = "Moosach";
-              }
-
-              // Stadtteil anzeigen (z. B. Laim, Moosach, Schwabing, Pasing), sonst München
-              detectedName = (viertel && viertel !== "München") ? viertel : "München";
-            } else {
-              // Außerhalb Münchens ganz normale Stadt / Gemeinde anzeigen
-              detectedName = geoData.city || geoData.locality || geoData.principalSubdivision || "Mein Standort 📍";
+            if (bezirk && hauptStadt && bezirk.toLowerCase() !== hauptStadt.toLowerCase()) {
+              // z.B. "Laim (München)" oder "Moosach (München)"
+              detectedName = `${bezirk} (${hauptStadt})`;
+            } else if (hauptStadt) {
+              // z.B. "Prien am Chiemsee", "Rosenheim"
+              detectedName = hauptStadt;
+            } else if (addr.county) {
+              detectedName = addr.county;
             }
 
             loadWeather(lat, lon, detectedName);
@@ -804,12 +764,10 @@
       );
     }
 
-    // Automatischer Hintergrund-Refresh alle 10 Minuten
     setInterval(() => {
       loadWeather(currentLat, currentLon, currentName, true);
     }, 10 * 60 * 1000);
 
-    // Service Worker für PWA & PWABuilder registrieren
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js', { scope: './' })
@@ -822,7 +780,6 @@
       });
     }
 
-    // Initialisierung beim Start: Automatischer GPS-Start wie bei wetter.com
     if (navigator.geolocation) {
       getLocation();
     } else {
