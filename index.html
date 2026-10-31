@@ -26,17 +26,12 @@
             accentHover: '#0284c7'
           },
           animation: {
-            'glow-pulse': 'glowPulse 6s ease-in-out infinite',
-            'float-slow': 'floatSlow 4s ease-in-out infinite'
+            'glow-pulse': 'glowPulse 6s ease-in-out infinite'
           },
           keyframes: {
             glowPulse: {
               '0%, 100%': { opacity: '0.2', transform: 'scale(1)' },
               '50%': { opacity: '0.45', transform: 'scale(1.1)' }
-            },
-            floatSlow: {
-              '0%, 100%': { transform: 'translateY(0)' },
-              '50%': { transform: 'translateY(-6px)' }
             }
           }
         }
@@ -60,6 +55,129 @@
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Wetter-Icon Animationen */
+    .anim-sun-spin {
+      display: inline-block;
+      animation: sunSpin 24s linear infinite;
+    }
+    @keyframes sunSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .anim-float {
+      display: inline-block;
+      animation: cloudFloat 4s ease-in-out infinite;
+    }
+    @keyframes cloudFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-7px); }
+    }
+
+    .anim-rain-bounce {
+      display: inline-block;
+      animation: rainBounce 1.8s ease-in-out infinite;
+    }
+    @keyframes rainBounce {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(4px) scale(0.96, 1.04); }
+    }
+
+    .anim-thunder-flash {
+      display: inline-block;
+      animation: thunderFlash 3.5s ease-in-out infinite;
+    }
+    @keyframes thunderFlash {
+      0%, 88%, 94%, 100% {
+        transform: scale(1) rotate(0deg);
+        filter: drop-shadow(0 0 0 rgba(255,255,255,0));
+      }
+      90% {
+        transform: scale(1.1) rotate(-3deg);
+        filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.95)) brightness(1.4);
+      }
+      92% {
+        transform: scale(1.05) rotate(3deg);
+        filter: drop-shadow(0 0 25px rgba(56, 189, 248, 0.9)) brightness(1.6);
+      }
+    }
+
+    /* ========================================================
+       DYNAMISCHE HINTERGRÜNDE DER HAUPTKARTE
+       ======================================================== */
+    
+    /* 1. Regen-Effekt */
+    .bg-rain-effect {
+      background-image: 
+        linear-gradient(to bottom, rgba(56, 189, 248, 0.25) 0%, rgba(56, 189, 248, 0) 75%),
+        radial-gradient(ellipse 2px 28px at 20% 10%, rgba(186, 230, 253, 0.35), transparent),
+        radial-gradient(ellipse 2px 34px at 50% 30%, rgba(186, 230, 253, 0.4), transparent),
+        radial-gradient(ellipse 2px 30px at 80% 15%, rgba(186, 230, 253, 0.35), transparent);
+      background-size: 100% 100%, 120px 140px, 160px 180px, 140px 160px;
+      animation: rainFall 0.85s linear infinite;
+    }
+    @keyframes rainFall {
+      0% { background-position: 0 0, 0 0, 0 0, 0 0; }
+      100% { background-position: 0 0, -20px 140px, -30px 180px, -25px 160px; }
+    }
+
+    /* 2. Schnee-Effekt */
+    .bg-snow-effect {
+      background-image: 
+        radial-gradient(circle 3px at 25% 20%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(circle 2px at 60% 40%, rgba(255, 255, 255, 0.7), transparent),
+        radial-gradient(circle 4px at 85% 15%, rgba(255, 255, 255, 0.6), transparent),
+        radial-gradient(circle 2.5px at 40% 75%, rgba(255, 255, 255, 0.75), transparent);
+      background-size: 140px 140px, 180px 180px, 220px 220px, 160px 160px;
+      animation: snowFall 6s linear infinite;
+    }
+    @keyframes snowFall {
+      0% { background-position: 0 0, 0 0, 0 0, 0 0; }
+      100% { background-position: 25px 140px, -35px 180px, 40px 220px, -20px 160px; }
+    }
+
+    /* 3. Gewitter-Hintergrund */
+    .bg-thunder-effect {
+      animation: thunderSky 6s ease-in-out infinite;
+    }
+    @keyframes thunderSky {
+      0%, 85%, 92%, 100% { background-color: transparent; }
+      87% { background-color: rgba(147, 197, 253, 0.18); }
+      90% { background-color: rgba(224, 231, 255, 0.28); }
+    }
+
+    /* 4. Wolken-Drift */
+    .bg-cloud-drift {
+      background: radial-gradient(ellipse at 30% 50%, rgba(148, 163, 184, 0.15), transparent 70%);
+      animation: cloudDrift 14s ease-in-out infinite alternate;
+    }
+    @keyframes cloudDrift {
+      0% { transform: scale(1) translateX(-15px); }
+      100% { transform: scale(1.12) translateX(25px); }
+    }
+
+    /* 5. Neuer Nebel-Effekt (Trübe, waagerecht driftende Dunstschichten) */
+    .bg-fog-effect {
+      background: 
+        radial-gradient(ellipse 350px 120px at 15% 40%, rgba(203, 213, 225, 0.22), transparent 75%),
+        radial-gradient(ellipse 400px 140px at 85% 65%, rgba(148, 163, 184, 0.18), transparent 80%),
+        linear-gradient(to bottom, rgba(203, 213, 225, 0.08), rgba(148, 163, 184, 0.12));
+      animation: fogMotion 18s ease-in-out infinite alternate;
+    }
+    @keyframes fogMotion {
+      0% { 
+        transform: scale(1) translateX(-25px); 
+        opacity: 0.65;
+      }
+      50% { 
+        opacity: 0.95; 
+      }
+      100% { 
+        transform: scale(1.15) translateX(35px); 
+        opacity: 0.75;
+      }
     }
   </style>
 </head>
@@ -123,20 +241,24 @@
     <!-- DWD Unwetterwarnungen (BrightSky API) -->
     <div id="weatherWarningBox" class="hidden mb-6 flex flex-col gap-3"></div>
 
-    <!-- Hauptkarte (Hero Weather Card) -->
-    <div id="mainCard" class="bg-gradient-to-br from-[#0f1d38] via-[#101b33] to-[#0c1426] border border-borderDark rounded-3xl p-6 md:p-7 mb-6 relative overflow-hidden shadow-2xl">
-      <!-- Glow-Effekte -->
-      <div class="absolute -right-8 -top-8 w-52 h-52 bg-sky-500/20 rounded-full blur-3xl pointer-events-none animate-glow-pulse"></div>
-      <div class="absolute -left-12 -bottom-12 w-48 h-48 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- Hauptkarte (Hero Weather Card mit dynamischem Wetter-Hintergrund) -->
+    <div id="mainCard" class="bg-gradient-to-br from-[#0f1d38] via-[#101b33] to-[#0c1426] border border-borderDark rounded-3xl p-6 md:p-7 mb-6 relative overflow-hidden shadow-2xl transition-all duration-700">
+      
+      <!-- Dynamischer Animation-Layer -->
+      <div id="weatherBgLayer" class="absolute inset-0 pointer-events-none transition-all duration-700"></div>
+
+      <!-- Dynamische Glow-Sphären -->
+      <div id="glowTop" class="absolute -right-8 -top-8 w-52 h-52 bg-sky-500/20 rounded-full blur-3xl pointer-events-none transition-all duration-700 animate-glow-pulse"></div>
+      <div id="glowBottom" class="absolute -left-12 -bottom-12 w-48 h-48 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none transition-all duration-700"></div>
 
       <div class="flex justify-between items-start mb-6 relative z-10">
         <div>
-          <div class="text-sky-400 font-extrabold text-2xl md:text-3xl tracking-tight" id="cityName">München</div>
+          <div class="text-sky-400 font-extrabold text-2xl md:text-3xl tracking-tight transition-colors duration-500" id="cityName">München</div>
           <div class="text-slate-300 text-sm md:text-base font-medium mt-1 flex items-center gap-2" id="weatherDesc">
             Wetterdaten werden geladen...
           </div>
         </div>
-        <div class="text-6xl md:text-7xl filter drop-shadow-2xl select-none animate-float-slow" id="weatherEmoji">⛅</div>
+        <div class="text-6xl md:text-7xl filter drop-shadow-2xl select-none anim-float" id="weatherEmoji">⛅</div>
       </div>
       
       <div class="flex justify-between items-end relative z-10">
@@ -323,35 +445,79 @@
       }
     }
 
-    // WMO Wettercodes Übersetzung & Icons
+    // WMO Wettercodes Übersetzung, Icons, Animation & dynamischer Kachel-Hintergrund
     function getWeatherInfo(code) {
       const map = {
-        0: { text: "Klarer Himmel", emoji: "☀️" },
-        1: { text: "Überwiegend klar", emoji: "🌤️" },
-        2: { text: "Teilweise bewölkt", emoji: "⛅" },
-        3: { text: "Bedeckt", emoji: "☁️" },
-        45: { text: "Nebel", emoji: "🌫️" },
-        48: { text: "Raureifnebel", emoji: "🌫️" },
-        51: { text: "Leichter Nieselregen", emoji: "🌦️" },
-        53: { text: "Mäßiger Nieselregen", emoji: "🌦️" },
-        55: { text: "Dichter Nieselregen", emoji: "🌧️" },
-        61: { text: "Leichter Regen", emoji: "🌧️" },
-        63: { text: "Mäßiger Regen", emoji: "🌧️" },
-        65: { text: "Starker Regen", emoji: "🌧️" },
-        71: { text: "Leichter Schneefall", emoji: "🌨️" },
-        73: { text: "Mäßiger Schneefall", emoji: "🌨️" },
-        75: { text: "Starker Schneefall", emoji: "❄️" },
-        77: { text: "Schneegriesel", emoji: "❄️" },
-        80: { text: "Leichte Regenschauer", emoji: "🌦️" },
-        81: { text: "Mäßige Regenschauer", emoji: "🌧️" },
-        82: { text: "Heftige Schauer", emoji: "⛈️" },
-        85: { text: "Leichte Schneeschauer", emoji: "🌨️" },
-        86: { text: "Starke Schneeschauer", emoji: "❄️" },
-        95: { text: "Gewitter", emoji: "⛈️" },
-        96: { text: "Gewitter mit leichtem Hagel", emoji: "🌩️" },
-        99: { text: "Schweres Gewitter mit Hagel", emoji: "🌩️" }
+        0: { text: "Klarer Himmel", emoji: "☀️", anim: "anim-sun-spin", bgType: "sun" },
+        1: { text: "Überwiegend klar", emoji: "🌤️", anim: "anim-float", bgType: "sun" },
+        2: { text: "Teilweise bewölkt", emoji: "⛅", anim: "anim-float", bgType: "clouds" },
+        3: { text: "Bedeckt", emoji: "☁️", anim: "anim-float", bgType: "clouds" },
+        45: { text: "Nebel", emoji: "🌫️", anim: "anim-float", bgType: "fog" },
+        48: { text: "Raureifnebel", emoji: "🌫️", anim: "anim-float", bgType: "fog" },
+        51: { text: "Leichter Nieselregen", emoji: "🌦️", anim: "anim-rain-bounce", bgType: "rain" },
+        53: { text: "Mäßiger Nieselregen", emoji: "🌦️", anim: "anim-rain-bounce", bgType: "rain" },
+        55: { text: "Dichter Nieselregen", emoji: "🌧️", anim: "anim-rain-bounce", bgType: "rain" },
+        61: { text: "Leichter Regen", emoji: "🌧️", anim: "anim-rain-bounce", bgType: "rain" },
+        63: { text: "Mäßiger Regen", emoji: "🌧️", anim: "anim-rain-bounce", bgType: "rain" },
+        65: { text: "Starker Regen", emoji: "🌧️", anim: "anim-rain-bounce", bgType: "rain" },
+        71: { text: "Leichter Schneefall", emoji: "🌨️", anim: "anim-rain-bounce", bgType: "snow" },
+        73: { text: "Mäßiger Schneefall", emoji: "🌨️", anim: "anim-rain-bounce", bgType: "snow" },
+        75: { text: "Starker Schneefall", emoji: "❄️", anim: "anim-rain-bounce", bgType: "snow" },
+        77: { text: "Schneegriesel", emoji: "❄️", anim: "anim-rain-bounce", bgType: "snow" },
+        80: { text: "Leichte Regenschauer", emoji: "🌦️", anim: "anim-rain-bounce", bgType: "rain" },
+        81: { text: "Mäßige Regenschauer", emoji: "🌧️", anim: "anim-rain-bounce", bgType: "rain" },
+        82: { text: "Heftige Schauer", emoji: "⛈️", anim: "anim-thunder-flash", bgType: "thunder" },
+        85: { text: "Leichte Schneeschauer", emoji: "🌨️", anim: "anim-rain-bounce", bgType: "snow" },
+        86: { text: "Starke Schneeschauer", emoji: "❄️", anim: "anim-rain-bounce", bgType: "snow" },
+        95: { text: "Gewitter", emoji: "⛈️", anim: "anim-thunder-flash", bgType: "thunder" },
+        96: { text: "Gewitter mit leichtem Hagel", emoji: "🌩️", anim: "anim-thunder-flash", bgType: "thunder" },
+        99: { text: "Schweres Gewitter mit Hagel", emoji: "🌩️", anim: "anim-thunder-flash", bgType: "thunder" }
       };
-      return map[code] || { text: "Wechselhaft", emoji: "🌥️" };
+      return map[code] || { text: "Wechselhaft", emoji: "🌥️", anim: "anim-float", bgType: "clouds" };
+    }
+
+    // Dynamischen Hintergrund auf der Hauptkarte setzen
+    function applyDynamicCardBackground(bgType) {
+      const card = document.getElementById('mainCard');
+      const bgLayer = document.getElementById('weatherBgLayer');
+      const glowTop = document.getElementById('glowTop');
+      const glowBottom = document.getElementById('glowBottom');
+
+      // Vorherige Effekt-Klassen entfernen
+      bgLayer.className = "absolute inset-0 pointer-events-none transition-all duration-700";
+
+      if (bgType === 'sun') {
+        card.style.background = 'linear-gradient(135deg, #132338 0%, #0f1c2d 50%, #08111e 100%)';
+        glowTop.className = 'absolute -right-8 -top-8 w-56 h-56 bg-amber-500/25 rounded-full blur-3xl pointer-events-none transition-all duration-700 animate-glow-pulse';
+        glowBottom.className = 'absolute -left-12 -bottom-12 w-48 h-48 bg-sky-500/20 rounded-full blur-3xl pointer-events-none transition-all duration-700';
+      } else if (bgType === 'rain') {
+        card.style.background = 'linear-gradient(135deg, #0d1e34 0%, #0c182a 50%, #070e19 100%)';
+        bgLayer.classList.add('bg-rain-effect');
+        glowTop.className = 'absolute -right-8 -top-8 w-52 h-52 bg-sky-600/25 rounded-full blur-3xl pointer-events-none transition-all duration-700';
+        glowBottom.className = 'absolute -left-12 -bottom-12 w-48 h-48 bg-cyan-600/20 rounded-full blur-3xl pointer-events-none transition-all duration-700';
+      } else if (bgType === 'snow') {
+        card.style.background = 'linear-gradient(135deg, #152238 0%, #101c2e 50%, #0c1524 100%)';
+        bgLayer.classList.add('bg-snow-effect');
+        glowTop.className = 'absolute -right-8 -top-8 w-52 h-52 bg-indigo-300/20 rounded-full blur-3xl pointer-events-none transition-all duration-700';
+        glowBottom.className = 'absolute -left-12 -bottom-12 w-48 h-48 bg-sky-400/20 rounded-full blur-3xl pointer-events-none transition-all duration-700';
+      } else if (bgType === 'thunder') {
+        card.style.background = 'linear-gradient(135deg, #131428 0%, #0d0e1d 50%, #070711 100%)';
+        bgLayer.classList.add('bg-thunder-effect');
+        glowTop.className = 'absolute -right-8 -top-8 w-56 h-56 bg-purple-600/30 rounded-full blur-3xl pointer-events-none transition-all duration-700';
+        glowBottom.className = 'absolute -left-12 -bottom-12 w-48 h-48 bg-sky-400/20 rounded-full blur-3xl pointer-events-none transition-all duration-700';
+      } else if (bgType === 'fog') {
+        // Neuer Nebel-Stil: Mattes Graublau mit träge driftenden Dunstschichten
+        card.style.background = 'linear-gradient(135deg, #161e2b 0%, #111823 50%, #0b1017 100%)';
+        bgLayer.classList.add('bg-fog-effect');
+        glowTop.className = 'absolute -right-8 -top-8 w-60 h-60 bg-slate-400/15 rounded-full blur-3xl pointer-events-none transition-all duration-700';
+        glowBottom.className = 'absolute -left-12 -bottom-12 w-52 h-52 bg-slate-500/10 rounded-full blur-3xl pointer-events-none transition-all duration-700';
+      } else {
+        // Wolken / Standard
+        card.style.background = 'linear-gradient(135deg, #0f1d38 0%, #101b33 50%, #0c1426 100%)';
+        bgLayer.classList.add('bg-cloud-drift');
+        glowTop.className = 'absolute -right-8 -top-8 w-52 h-52 bg-sky-500/20 rounded-full blur-3xl pointer-events-none transition-all duration-700 animate-glow-pulse';
+        glowBottom.className = 'absolute -left-12 -bottom-12 w-48 h-48 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none transition-all duration-700';
+      }
     }
 
     // Wetter & Unwetterdaten abrufen
@@ -446,7 +612,15 @@
         document.getElementById('temp').textContent = Math.round(cur.temperature_2m) + "°";
         document.getElementById('feelsLike').textContent = "Gefühlt wie " + Math.round(cur.apparent_temperature) + "°";
         document.getElementById('weatherDesc').textContent = weatherInfo.text;
-        document.getElementById('weatherEmoji').textContent = weatherInfo.emoji;
+        
+        // Dynamische Animation des Haupt-Symbols
+        const emojiEl = document.getElementById('weatherEmoji');
+        emojiEl.textContent = weatherInfo.emoji;
+        emojiEl.className = `text-6xl md:text-7xl filter drop-shadow-2xl select-none ${weatherInfo.anim}`;
+
+        // Dynamischen Hintergrund der Hauptkarte aktivieren
+        applyDynamicCardBackground(weatherInfo.bgType);
+
         document.getElementById('wind').textContent = Math.round(cur.wind_speed_10m) + " km/h";
         document.getElementById('humidity').textContent = cur.relative_humidity_2m + " %";
         
@@ -577,7 +751,7 @@
       showNotification(`Ort ausgewählt: ${name}`);
     }
 
-    // Standort per Browser-GPS (Dynamische Stadtteil-Erkennung für München & Laim-Filter)
+    // Standort per Browser-GPS (Dynamische Stadtteil-Erkennung für München & Laim/Moosach-Filter)
     async function getLocation() {
       if (!navigator.geolocation) {
         showNotification("Standortbestimmung wird vom Browser nicht unterstützt.", "error");
@@ -605,7 +779,12 @@
                 viertel = "Laim";
               }
 
-              // Stadtteil anzeigen (z. B. Laim, Schwabing, Pasing), sonst München
+              // Unterbezirke von Moosach zusammenfassen
+              if (viertel.includes("Olympia") || viertel === "Pressestadt" || viertel === "Borstei" || viertel === "Hartmannshofen") {
+                viertel = "Moosach";
+              }
+
+              // Stadtteil anzeigen (z. B. Laim, Moosach, Schwabing, Pasing), sonst München
               detectedName = (viertel && viertel !== "München") ? viertel : "München";
             } else {
               // Außerhalb Münchens ganz normale Stadt / Gemeinde anzeigen
