@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WetterPilot Pro - Präzisionswetter & Unwetterradar</title>
+  
+  <!-- Web App Manifest für PWABuilder & Android APK -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#070b13">
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -614,6 +619,19 @@
     setInterval(() => {
       loadWeather(currentLat, currentLon, currentName, true);
     }, 10 * 60 * 1000);
+
+    // Service Worker für PWA & PWABuilder registrieren
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js', { scope: './' })
+          .then((reg) => {
+            console.log('WetterPilot Service Worker erfolgreich registriert:', reg.scope);
+          })
+          .catch((err) => {
+            console.warn('Service Worker Registrierung fehlgeschlagen:', err);
+          });
+      });
+    }
 
     // Initialisierung beim Start: Automatischer GPS-Start wie bei wetter.com
     if (navigator.geolocation) {
