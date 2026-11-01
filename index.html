@@ -20,6 +20,8 @@
         serviceWorkerPath: "OneSignalSDKWorker.js",
         serviceWorkerParam: { scope: "/Wetterpilot/" }
       });
+      // Zeigt den Push-Erlaubnisdialog im Browser an
+      OneSignal.Slidedown.promptPush();
     });
   </script>
 
@@ -57,7 +59,7 @@
       font-family: 'Plus Jakarta Sans', sans-serif; 
     }
     
-    /* Feine, elegante Scrollbars */
+    /* Feine Scrollbars */
     ::-webkit-scrollbar { height: 6px; width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
@@ -117,7 +119,7 @@
       }
     }
 
-    /* DYNAMISCHE HINTERGRÜNDE DER HAUPTKARTE */
+    /* Dynamische Hintergründe der Hauptkarte */
     .bg-rain-effect {
       background-image: 
         linear-gradient(to bottom, rgba(56, 189, 248, 0.25) 0%, rgba(56, 189, 248, 0) 75%),
@@ -829,7 +831,7 @@
             const hauptStadt = addr.city || addr.town || addr.municipality || addr.village || "";
             let bezirk = addr.city_district || addr.borough || addr.suburb || "";
 
-            if (bezirk.toLowerCase() === "friedenheim" || bezirk.toLowerCase() === "st. ulrich") {
+            if (bezirk.toLowerCase() === "friedenheim" || bezirk.toLowerCase() === "st. Ulrich") {
               bezirk = "Laim";
             }
             if (bezirk.toLowerCase().includes("moosach")) {
@@ -862,18 +864,6 @@
     setInterval(() => {
       loadWeather(currentLat, currentLon, currentName, true);
     }, 10 * 60 * 1000);
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js', { scope: './' })
-          .then((reg) => {
-            console.log('WetterPilot Service Worker erfolgreich registriert:', reg.scope);
-          })
-          .catch((err) => {
-            console.warn('Service Worker Registrierung fehlgeschlagen:', err);
-          });
-      });
-    }
 
     if (navigator.geolocation) {
       getLocation();
