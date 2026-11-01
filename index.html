@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="de" class="dark">
 <head>
   <meta charset="UTF-8">
@@ -17,32 +17,35 @@
     OneSignalDeferred.push(async function(OneSignal) {
       await OneSignal.init({
         appId: "0bfeab4b-de0e-4382-b17f-4baa4cc39356",
-        serviceWorkerPath: "OneSignalSDKWorker.js",
+        serviceWorkerPath: "/Wetterpilot/OneSignalSDKWorker.js",
         serviceWorkerParam: { scope: "/Wetterpilot/" }
       });
 
-      // Falls im Browser bereits "Zugelassen" aktiviert ist, direkt synchronisieren
+      // Falls bereits Berechtigung vorliegt, direkt synchronisieren
       if (Notification.permission === "granted") {
         try {
           await OneSignal.User.PushSubscription.optIn();
         } catch(e) {}
-      } else {
-        OneSignal.Slidedown.promptPush();
       }
     });
 
-    // Manuelle Registrierung per Klick anstoßen
-    async function forceOneSignalSync() {
-      if (window.OneSignal) {
-        try {
-          await OneSignal.User.PushSubscription.optIn();
-          showNotification("Push-Abo erfolgreich an OneSignal übertragen!");
-        } catch (err) {
-          showNotification("Fehler bei der Übertragung: " + err, "error");
-        }
-      } else {
-        showNotification("OneSignal SDK lädt noch...", "error");
+    // Manuelle Registrierung per Klick auf den grünen Button
+    function forceOneSignalSync() {
+      if (!window.OneSignalDeferred) {
+        showNotification("OneSignal konnte nicht geladen werden.", "error");
+        return;
       }
+
+      OneSignalDeferred.push(async function(OneSignal) {
+        try {
+          // Öffnet die native Abfrage / Slidedown für Push-Rechte
+          await OneSignal.Slidedown.promptPush();
+          await OneSignal.User.PushSubscription.optIn();
+          showNotification("Push-Abo erfolgreich aktiviert!");
+        } catch (err) {
+          showNotification("Fehler bei der Registrierung: " + err, "error");
+        }
+      });
     }
   </script>
 
