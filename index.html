@@ -35,6 +35,13 @@
         serviceWorkerParam: { scope: "/Wetterpilot/" }
       });
 
+      // Standort-Erfassung in OneSignal aktivieren
+      try {
+        if (OneSignal.Location) {
+          await OneSignal.Location.requestPermission();
+        }
+      } catch (e) {}
+
       // Status beim Laden prüfen
       const isOptedIn = OneSignal.User.PushSubscription.optedIn;
       updatePushButtonUI(isOptedIn);
@@ -876,6 +883,20 @@
           const lat = pos.coords.latitude;
           const lon = pos.coords.longitude;
           loadWeather(lat, lon, "Mein Standort 📍");
+
+          // Standort automatisch an OneSignal übertragen
+          if (window.OneSignalDeferred) {
+            window.OneSignalDeferred.push(function(OneSignal) {
+              try {
+                if (OneSignal.User && OneSignal.User.addTags) {
+                  OneSignal.User.addTags({
+                    user_lat: lat.toFixed(4),
+                    user_lon: lon.toFixed(4)
+                  });
+                }
+              } catch (e) {}
+            });
+          }
 
           try {
             const geoRes = await fetch(
