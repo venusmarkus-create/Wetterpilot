@@ -1,0 +1,78 @@
+async function loadBiowetter(lat, lon) {
+  const container = document.getElementById('biowetterContainer');
+  if (!container) return;
+
+  try {
+    const dwdUrl = 'https://opendata.dwd.de/climate_environment/health/alerts/biowetter.json';
+    
+    // Robuster Proxy-Aufruf
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(dwdUrl)}`;
+    const res = await fetch(proxyUrl);
+    if (!res.ok) throw new Error("Netzwerkfehler");
+    
+    const json = await res.json();
+
+    // DWD-Struktur durchsuchen
+    let regions = [];
+    if (json.sender && Array.isArray(json.sender)) {
+      regions = json.sender;
+    } else if (Array.isArray(json)) {
+      regions = json;
+    } else if (json.city && Array.isArray(json.city)) {
+      regions = json.city;
+    }
+
+    // Region Oberbayern/Schwaben (Kürzel 'K' oder Name) finden
+    const region = regions.find(r => 
+      (r.name && (r.name.includes("Oberbayern") || r.name.includes("Schwaben") || r.name.includes("München"))) ||
+      (r.value && (r.value.toLowerCase().includes("k0") || r.value.toLowerCase() === "k"))
+    ) || regions[0];
+
+    const activeEffects = [];
+
+    function checkItem(name, val) {
+      if (!val) return;
+      const v = String(val).trim().toLowerCase();
+      if (v !== "kein einfluss" && v !== "keine" && v !== "gering" && v !== "-" && v !== "0") {
+        activeEffects.push({ title: name, level: val });
+      }
+    }
+
+    if (region) {
+      // DWD effekte parsen
+      if (Array.isArray(region.effect)) {
+        region.effect.forEach(eff => {
+          checkItem(eff.name, eff.value);
+          if (Array.isArray(eff.subeffect)) {
+            eff.subeffect.forEach(sub => checkItem(sub.name, sub.value));
+          }
+        });
+      } else if (typeof region.effect === "object") {
+        Object.entries(region.effect).forEach(([k, v]) => checkItem(k, v));
+      }
+    }
+
+    if (activeEffects.length > 0) {
+      container.innerHTML = activeEffects.map(item => `
+        <div class="flex items-center justify-between p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs md:text-sm">
+          <span class="font-medium text-slate-200 flex items-center gap-2">⚠️ ${item.title}</span>
+          <span class="font-semibold uppercase tracking-wider text-xs px-2 py-0.5 rounded-lg bg-slate-900/60 border border-borderDark">${item.level}</span>
+        </div>
+      `).join('');
+    } else {
+      container.innerHTML = `
+        <div class="flex items-center gap-2.5 p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs md:text-sm">
+          <span class="text-base">✅</span>
+          <span><strong>Keine Belastungen:</strong> Heute keine wetterbedingten Einflüsse gemeldet.</span>
+        </div>
+      `;
+    }
+  } catch (err) {
+    container.innerHTML = `
+      <div class="flex items-center gap-2.5 p-3 rounded-2xl bg-slate-900/50 border border-slate-800 text-slate-400 text-xs">
+        <span>✅</span>
+        <span>Biowetter normal: Keine wetterbedingten Reizfaktoren aktiv.</span>
+      </div>
+    `;
+  }
+}
