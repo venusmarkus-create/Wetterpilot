@@ -1,4 +1,5 @@
 name: Build Android AAB
+
 on:
   workflow_dispatch:
 
@@ -6,7 +7,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -17,18 +19,18 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
 
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Build AAB
+      - name: Initialize and Build TWA
         run: |
-          yes "" | bubblewrap init --manifest="https://venusmarkus-create.github.io/Wetterpilot/manifest.json"
-          bubblewrap build --skipPwaValidation
+          npx @bubblewrap/cli init --manifest="https://venusmarkus-create.github.io/Wetterpilot/manifest.json" --skipPwaValidation
+          npx @bubblewrap/cli build --skipSigning
 
-      - name: Upload Artifact
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: app-bundle
-          path: "*.aab"
+          name: app-release-unsigned
+          path: app-release-unsigned-signed.apk # oder *.aab
