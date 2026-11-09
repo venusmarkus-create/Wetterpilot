@@ -7,16 +7,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
+
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
+
       - name: Build AAB
         run: |
-          bubblewrap init --manifest="https://markusvenus.github.io/wetterpilot/manifest.json" --yes
+          yes "" | bubblewrap init --manifest="https://venusmarkus-create.github.io/Wetterpilot/manifest.json"
           bubblewrap build --skipPwaValidation
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: app-bundle
           path: "*.aab"
