@@ -24,6 +24,10 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
       - name: Create Manifest and Keystore
         run: |
           cat << 'EOF' > twa-manifest.json
@@ -59,16 +63,15 @@ jobs:
       - name: Configure Bubblewrap CLI
         run: |
           mkdir -p ~/.bubblewrap
-          cat << 'EOF' > ~/.bubblewrap/config.json
+          cat << EOF > ~/.bubblewrap/config.json
           {
-            "jdkPath": "${{ env.JAVA_HOME }}",
-            "androidSdkPath": "/usr/local/lib/android/sdk"
+            "jdkPath": "$JAVA_HOME",
+            "androidSdkPath": "$ANDROID_HOME"
           }
           EOF
 
       - name: Build Android Bundle
         env:
-          ANDROID_HOME: /usr/local/lib/android/sdk
           BUBBLEWRAP_KEYSTORE_PASSWORD: pass1234
           BUBBLEWRAP_KEY_PASSWORD: pass1234
         run: |
