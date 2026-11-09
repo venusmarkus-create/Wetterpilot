@@ -16,6 +16,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -24,13 +27,53 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Initialize and Build TWA
+      - name: Create Manifest and Keystore
         run: |
-          npx @bubblewrap/cli init --manifest="https://venusmarkus-create.github.io/Wetterpilot/manifest.json" --skipPwaValidation
-          npx @bubblewrap/cli build --skipSigning
+          cat << 'EOF' > twa-manifest.json
+          {
+            "packageId": "com.markusvenus.wetterpilot",
+            "host": "venusmarkus-create.github.io",
+            "name": "Wetterpilot",
+            "launcherName": "Wetterpilot",
+            "themeColor": "#0284c7",
+            "navigationColor": "#000000",
+            "backgroundColor": "#ffffff",
+            "enableNotifications": true,
+            "startUrl": "/Wetterpilot/",
+            "iconUrl": "https://venusmarkus-create.github.io/Wetterpilot/icon-512.png",
+            "maskableIconUrl": "https://venusmarkus-create.github.io/Wetterpilot/icon-512.png",
+            "appVersionName": "1.0.0",
+            "appVersionCode": 1,
+            "signingKey": {
+              "path": "./android.keystore",
+              "alias": "android"
+            },
+            "generatorApp": "bubblewrap-cli",
+            "webManifestUrl": "https://venusmarkus-create.github.io/Wetterpilot/manifest.json",
+            "fallbackType": "customtabs",
+            "features": {},
+            "alphaDependencies": {
+              "enabled": false
+            }
+          }
+          EOF
+          keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass pass1234 -keypass pass1234 -dname "CN=Markus, OU=App, O=Wetterpilot, L=Munich, S=Bavaria, C=DE"
 
-      - name: Upload Artifacts
+      - name: Build Android Bundle
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: pass1234
+          BUBBLEWRAP_KEY_PASSWORD: pass1234
+        run: |
+          bubblewrap build --manifest=twa-manifest.json
+
+      - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-unsigned
-          path: app-release-unsigned-signed.apk # oder *.aab
+          name: Wetterpilot-AAB
+          path: "*.aab"
+
+      - name: Upload Keystore
+        uses: actions/upload-artifact@v4
+        with:
+          name: Signing-Keystore
+          path: android.keystore
