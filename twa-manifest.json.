@@ -1,0 +1,26 @@
+{
+  "packageId": "com.markusvenus.wetterpilot",
+  "host": "venusmarkus-create.github.io",
+  "name": "Wetterpilot",
+  "launcherName": "Wetterpilot",
+  "themeColor": "#0284c7",
+  "navigationColor": "#000000",
+  "backgroundColor": "#ffffff",
+  "enableNotifications": true,
+  "startUrl": "/Wetterpilot/",
+  "iconUrl": "https://venusmarkus-create.github.io/Wetterpilot/icon-512.png",
+  "maskableIconUrl": "https://venusmarkus-create.github.io/Wetterpilot/icon-512.png",
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://venusmarkus-create.github.io/Wetterpilot/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  }
+}
