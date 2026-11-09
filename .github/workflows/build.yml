@@ -16,9 +16,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -59,8 +56,19 @@ jobs:
           EOF
           keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass pass1234 -keypass pass1234 -dname "CN=Markus, OU=App, O=Wetterpilot, L=Munich, S=Bavaria, C=DE"
 
+      - name: Configure Bubblewrap CLI
+        run: |
+          mkdir -p ~/.bubblewrap
+          cat << 'EOF' > ~/.bubblewrap/config.json
+          {
+            "jdkPath": "${{ env.JAVA_HOME }}",
+            "androidSdkPath": "/usr/local/lib/android/sdk"
+          }
+          EOF
+
       - name: Build Android Bundle
         env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
           BUBBLEWRAP_KEYSTORE_PASSWORD: pass1234
           BUBBLEWRAP_KEY_PASSWORD: pass1234
         run: |
