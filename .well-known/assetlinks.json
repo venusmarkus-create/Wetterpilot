@@ -1,0 +1,11 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.markusvenus.wetterpilot",
+      "sha256_cert_fingerprints":
+        ["E0:05:AF:8E:C9:BB:F5:89:89:48:66:5E:B2:82:0E:78:AA:42:ED:7C:43:23:A6:96:1A:67:90:7B:C9:14:53:5F"]
+    }
+  }
+]
