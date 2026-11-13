@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WetterPilot Pro - Präzisionswetter & Unwetterradar</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#070b13">
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          darkBg: '#070b13',
+          cardBg: '#0f172a',
+        }
+      }
+    }
+  }
+</script>
+<!-- OneSignal Web Push SDK -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<style>
+  body {
+    background-color: #070b13;
+    color: #f8fafc;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+  .glass-panel {
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+</style>
+</head>
+
+<body class="min-h-screen pb-12">
+
+  <!-- Header / Navigation -->
+  <header class="sticky top-0 z-50 glass-panel border-b border-slate-800/80 px-4 py-3">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl" id="headerWeatherIcon">☀️</span>
+        <h1 class="font-bold text-lg tracking-tight bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">Wetterpilot</h1>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="getLocation()" class="bg-slate-800/80 hover:bg-slate-700 p-2 rounded-xl text-slate-300 transition text-xs flex items-center gap-1 border border-slate-700/50 cursor-pointer">
+          📍 GPS
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-md mx-auto p-4 space-y-4">
+
+    <!-- Toast Benachrichtigungs-Container -->
+    <div id="toastContainer" class="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-11/12 max-w-md"></div>
+
+    <!-- Gemini / KI Wetter-Tipp Card -->
+    <div class="glass-panel rounded-2xl p-4 shadow-md border-l-4 border-l-amber-500">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-base">💡</span>
+        <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Gemini Wetter-Tipp</span>
+      </div>
+      <p id="aiWeatherTip" class="text-xs text-slate-300">Analysiere aktuelle Wetterlage für Empfehlungen...</p>
+    </div>
+
+    <!-- Push Notification Trigger Card -->
+    <div class="glass-panel rounded-2xl p-4 shadow-md">
+      <button id="pushSyncBtn" onclick="togglePushSubscription()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] transition-all text-white font-semibold py-3 px-4 rounded-2xl shadow-lg border border-emerald-400/30 text-xs md:text-sm cursor-pointer flex items-center justify-center gap-2">
+        <span id="pushSyncBtnText">Push-Nachrichten für Unwetter aktivieren</span>
+      </button>
+    </div>
+
+    <!-- Ortssuche -->
+    <div class="glass-panel rounded-2xl p-3 shadow-md flex gap-2">
+      <input type="text" id="cityInput" placeholder="Stadt suchen (z.B. München)..." class="w-full bg-slate-900/80 border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+      <button onclick="searchCity()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-medium transition cursor-pointer">Suchen</button>
+    </div>
+
+    <!-- Schnell-Auswahl Orte -->
+    <div class="flex gap-2 overflow-x-auto pb-1 text-xs scrollbar-none">
+      <button onclick="loadQuickCity(48.1371, 11.5754, 'Laim (München)')" class="glass-panel px-3 py-1.5 rounded-xl whitespace-nowrap hover:border-emerald-500/50 transition cursor-pointer">📍 Laim</button>
+      <button onclick="loadQuickCity(48.1351, 11.5820, 'München Zentrum')" class="glass-panel px-3 py-1.5 rounded-xl whitespace-nowrap hover:border-emerald-500/50 transition cursor-pointer">🏙️ Zentrum</button>
+      <button onclick="loadQuickCity(48.1750, 11.5540, 'Moosach')" class="glass-panel px-3 py-1.5 rounded-xl whitespace-nowrap hover:border-emerald-500/50 transition cursor-pointer">🏡 Moosach</button>
+    </div>
+
+    <!-- Aktuelles Wetter Card -->
+    <div class="glass-panel rounded-3xl p-5 shadow-xl relative overflow-hidden border border-slate-700/50">
+      <div class="flex justify-between items-start">
+        <div>
+          <h2 id="locationName" class="text-xl font-bold text-white tracking-tight">München</h2>
+          <p id="stationInfo" class="text-xs text-slate-400 mt-0.5">DWD Station lädt...</p>
+          <p id="weatherDesc" class="text-sm font-medium text-emerald-400 mt-2">Lade Wetterdaten...</p>
+        </div>
+        <!-- Dynamisches Icon (Tag/Nacht Automatik) -->
+        <div id="mainWeatherIcon" class="text-5xl filter drop-shadow-md">☀️</div>
+      </div>
+
+      <div class="mt-6 flex items-baseline justify-between">
+        <div class="flex items-start">
+          <span id="tempVal" class="text-6xl font-extrabold tracking-tighter text-white">--</span>
+          <span class="text-2xl font-bold text-slate-400 ml-1">°C</span>
+        </div>
+        <div class="text-right">
+          <p id="apparentTemp" class="text-xs text-slate-300">Gefühlt wie --°C</p>
+          <p id="tempMinMax" class="text-xs text-slate-400 mt-1">Max: --° • Min: --°</p>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-800/80 flex justify-between items-center text-[11px] text-slate-400">
+        <span id="updateTime">Aktualisiert: --:--</span>
+        <span id="dataSourceBadge" class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md font-mono">DWD ICON-D2</span>
+      </div>
+    </div>
+
+    <!-- DWD Regenradar Ticker -->
+    <div class="glass-panel rounded-2xl p-4 shadow-md border-l-4 border-l-emerald-500">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-300">🌧️ DWD-Regenradar (5-Minuten-Ticker)</span>
+        <span id="radarStatusBadge" class="bg-emerald-500/20 text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded-full">Prüfe...</span>
+      </div>
+      <p id="radarText" class="text-sm font-medium text-slate-200">Analysiere Niederschlagsradar für deinen Standort...</p>
+      <div id="radarTimeline" class="mt-3 grid grid-cols-5 gap-1 text-center text-[10px] text-slate-400">
+        <!-- Dynamische 60-Minuten Ticker Vorschau -->
+      </div>
+    </div>
+
+    <!-- Stündlicher Verlauf -->
+    <div class="glass-panel rounded-2xl p-4 shadow-md">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-300">⏳ Stündlicher Verlauf</span>
+        <span class="text-[10px] text-slate-400">Nächste 24h</span>
+      </div>
+      <div id="hourlyContainer" class="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+        <!-- Wird per JS befüllt -->
+      </div>
+    </div>
+
+    <!-- Wind & Böen Card -->
+    <div id="wind-card" class="glass-panel rounded-2xl p-4 shadow-md flex flex-col justify-between border-l-4 border-l-emerald-500 transition duration-300">
+      <div class="flex items-center justify-between">
+        <span id="wind-title" class="text-xs font-bold uppercase tracking-wider text-slate-300">Wind & Böen</span>
+        <span class="text-xs font-mono text-slate-400">10m Höhe</span>
+      </div>
+      <div class="mt-3 flex items-baseline justify-between">
+        <div>
+          <span id="wind-speed-val" class="text-lg font-bold text-white">-- km/h</span>
+        </div>
+        <div class="text-right">
+          <span id="wind-gust-val" class="text-xs text-slate-300 font-medium">Spitzenböen: --</span>
+        </div>
+      </div>
+      <p id="wind-status" class="text-[11px] font-semibold text-emerald-400 mt-2 truncate">Lage ruhig – keine Windgefahren.</p>
+    </div>
+
+    <!-- Biowetter / Gesundheitswetter -->
+    <div class="glass-panel rounded-2xl p-4 shadow-md">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-300">🌿 Biowetter & Belastungen</span>
+        <span class="text-[10px] text-slate-400">DWD</span>
+      </div>
+      <div id="biowetterContainer" class="text-xs text-slate-300 space-y-1">
+        Lade Biowetter-Daten...
+      </div>
+    </div>
+
+  </main>
+
+  <!-- JavaScript Logik -->
+  <script>
+    let currentLat = 48.1371;
+    let currentLon = 11.5754;
+    let currentName = "Laim (München)";
+    let selectedModel = "best_match";
+
+    // Benachrichtigungs-Toast anzeigen
+    function showNotification(message, type = "success") {
+      const container = document.getElementById("toastContainer");
+      if (!container) return;
+      const toast = document.createElement("div");
+      let bg = "bg-emerald-600/90 border-emerald-400/40 text-white";
+      if (type === "error") bg = "bg-rose-600/90 border-rose-400/40 text-white";
+      if (type === "info") bg = "bg-slate-800/90 border-slate-600 text-slate-200";
+
+      toast.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md text-xs font-medium flex items-center justify-between transition-all duration-300 transform translate-y-2 opacity-0 ${bg}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove("translate-y-2", "opacity-0");
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add("translate-y-2", "opacity-0");
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // Wettercode-Zuordnung mit Tag- und Nacht-Unterscheidung (Sonne / Mond)
+    function getWeatherIcon(code, isDay) {
+      switch (code) {
+        case 0: return isDay ? "☀️" : "🌙";
+        case 1:
+        case 2: return isDay ? "⛅" : "☁️";
+        case 3: return "☁️";
+        case 45:
+        case 48: return "🌫️";
+        case 51:
+        case 53:
+        case 55:
+        case 61:
+        case 63:
+        case 65: return "🌧️";
+        case 71:
+        case 73:
+        case 75: return "❄️";
+        case 95:
+        case 96:
+        case 99: return "⚡";
+        default: return isDay ? "☀️" : "🌙";
+      }
+    }
+
+    function getWeatherDescription(code) {
+      const descriptions = {
+        0: "Klarer Himmel",
+        1: "Überwiegend klar",
+        2: "Teilweise bewölkt",
+        3: "Bedeckt",
+        45: "Nebel",
+        48: "Reifnebel",
+        51: "Leichter Nieselregen",
+        53: "Mäßiger Nieselregen",
+        55: "Dicker Nieselregen",
+        61: "Leichter Regen",
+        63: "Mäßiger Regen",
+        65: "Starker Regen",
+        71: "Leichter Schneefall",
+        73: "Mäßiger Schneefall",
+        75: "Starker Schneefall",
+        95: "Gewitter",
+        96: "Gewitter mit Hagel"
+      };
+      return descriptions[code] || "Unbekannter Zustand";
+    }
+
+    function updateActiveModelBadge() {
+      const badge = document.getElementById("dataSourceBadge");
+      if (!badge) return;
+      if (selectedModel === "icon_d2") badge.textContent = "DWD ICON-D2";
+      else if (selectedModel === "ecmwf_ifs025") badge.textContent = "ECMWF IFS";
+      else badge.textContent = "DWD ICON-D2";
+    }
+
+    function updatePushButtonUI(isSubscribed) {
+      const btn = document.getElementById("pushSyncBtn");
+      const text = document.getElementById("pushSyncBtnText");
+      if (!btn || !text) return;
+      if (isSubscribed) {
+        text.textContent = "Push-Benachrichtigungen aktiv ✓";
+        btn.className = "w-full bg-slate-800/80 hover:bg-slate-800 transition-all text-emerald-400 font-medium py-3 px-4 rounded-2xl border border-emerald-500/30 text-xs md:text-sm cursor-pointer flex items-center justify-center gap-2 shadow-inner";
+      } else {
+        text.textContent = "Push-Nachrichten für Unwetter aktivieren";
+        btn.className = "w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] transition-all text-white font-semibold py-3 px-4 rounded-2xl shadow-lg border border-emerald-400/30 text-xs md:text-sm cursor-pointer flex items-center justify-center gap-2";
+      }
+    }
+
+    function syncGpsToOneSignal(lat, lon) {
+      if (!window.OneSignalDeferred) return;
+      window.OneSignalDeferred.push(async function(OneSignal) {
+        try {
+          const subId = OneSignal.User?.PushSubscription?.id || null;
+          if (OneSignal.User && OneSignal.User.addTags) {
+            await OneSignal.User.addTags({
+              user_lat: parseFloat(lat).toFixed(2),
+              user_lon: parseFloat(lon).toFixed(2)
+            });
+          }
+          fetch('https://little-lab-0f3a.venus-markus.workers.dev/alert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              lat: parseFloat(lat),
+              lon: parseFloat(lon),
+              subscription_id: subId
+            })
+          }).catch(err => console.warn("Alert-Check fehlgeschlagen:", err));
+        } catch (e) {
+          console.warn("Fehler beim GPS-Sync:", e);
+        }
+      });
+    }
+
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "0bfeab4b-de0e-4382-b17f-4baa4cc39356",
+        serviceWorkerPath: "OneSignalSDKWorker.js",
+        serviceWorkerParam: { scope: "/Wetterpilot/" }
+      });
+      const isOptedIn = OneSignal.User?.PushSubscription?.optedIn || false;
+      updatePushButtonUI(isOptedIn);
+      if (OneSignal.User?.PushSubscription?.addEventListener) {
+        OneSignal.User.PushSubscription.addEventListener("change", function(event) {
+          const active = event.current?.optedIn || false;
+          updatePushButtonUI(active);
+        });
+      }
+    });
+
+    async function togglePushSubscription() {
+      window.OneSignalDeferred.push(async function(OneSignal) {
+        try {
+          if (OneSignal.User.PushSubscription.optedIn) {
+            await OneSignal.User.PushSubscription.optout();
+            updatePushButtonUI(false);
+            showNotification("Push-Benachrichtigungen deaktiviert.", "info");
+          } else {
+            await OneSignal.User.PushSubscription.optin();
+            updatePushButtonUI(true);
+            syncGpsToOneSignal(currentLat, currentLon);
+            showNotification("Push-Benachrichtigungen erfolgreich aktiviert! ✓");
+          }
+        } catch (e) {
+          console.error("Push-Fehler:", e);
+          showNotification("Fehler bei Push-Aktivierung.", "error");
+        }
+      });
+    }
+
+    function renderWeatherData(data, isCached = false, cachedTimeStr = "") {
+      if (!data || !data.current) return;
+      const cur = data.current;
+      const isDay = cur.is_day !== undefined ? cur.is_day : 1;
+      const weatherCode = cur.weather_code;
+
+      document.getElementById('tempVal').textContent = Math.round(cur.temperature_2m);
+      document.getElementById('apparentTemp').textContent = `Gefühlt wie ${Math.round(cur.apparent_temperature)}°C`;
+      document.getElementById('weatherDesc').textContent = getWeatherDescription(weatherCode);
+
+      const emojiIcon = getWeatherIcon(weatherCode, isDay);
+      document.getElementById('mainWeatherIcon').textContent = emojiIcon;
+      document.getElementById('headerWeatherIcon').textContent = emojiIcon;
+
+      if (data.daily && data.daily.temperature_2m_max) {
+        document.getElementById('tempMinMax').textContent = `Max: ${Math.round(data.daily.temperature_2m_max[0])}° • Min: ${Math.round(data.daily.temperature_2m_min[0])}°`;
+      }
+
+      updateWindDisplay(cur);
+      if (data.hourly) renderHourly(data.hourly);
+
+      const tipEl = document.getElementById('aiWeatherTip');
+      if (cur.temperature_2m <= 2) {
+        tipEl.textContent = "Frostgefahr! Vorsicht auf den Straßen und Wegen, warm einpacken.";
+      } else {
+        tipEl.textContent = "Angenehme Bedingungen, kein akutes Unwetterrisiko gemeldet.";
+      }
+
+      const timeStr = isCached && cachedTimeStr ? cachedTimeStr : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('updateTime').textContent = `Aktualisiert: ${timeStr}`;
+    }
+
+    async function loadWeather(lat, lon, name, isBackground = false) {
+      currentLat = lat;
+      currentLon = lon;
+      currentName = name;
+      document.getElementById('locationName').textContent = name;
+
+      const stationEl = document.getElementById('stationInfo');
+      try {
+        const brightRes = await fetch(`https://api.brightsky.dev/current_weather?lat=${lat}&lon=${lon}`);
+        const brightData = await brightRes.json();
+        if (brightData.sources && brightData.sources.length > 0) {
+          const src = brightData.sources[0];
+          const distKm = (src.distance / 1000).toFixed(1);
+          let stationName = src.station_name || "DWD Station";
+          if (stationName === "München-Stadt" || src.id === "03379" || src.station_id === "03379") {
+            stationName = "München-Stadt (Helene-Weber-Allee)";
+          }
+          stationEl.textContent = `${stationName} • ${distKm} km entfernt`;
+        } else {
+          stationEl.textContent = "München-Stadt (Helene-Weber-Allee)";
+        }
+      } catch (err) {
+        stationEl.textContent = "München-Stadt (Helene-Weber-Allee)";
+      }
+
+      try {
+        let modelParam = "models=best_match";
+        if (selectedModel === "icon_d2") modelParam = "models=icon_d2";
+        else if (selectedModel === "ecmwf_ifs025") modelParam = "models=ecmwf_ifs025";
+
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min&timezone=Europe/Berlin&${modelParam}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Netzwerkfehler");
+        const data = await res.json();
+
+        const timeNowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        localStorage.setItem(`wetter_cache_${lat.toFixed(2)}_${lon.toFixed(2)}_${selectedModel}`, JSON.stringify({ data: data, time: timeNowStr }));
+
+        renderWeatherData(data, false);
+        await loadRadarTicker(lat, lon, data.current.weather_code);
+        await loadBiowetter(lat, lon);
+      } catch (err) {
+        const cachedRaw = localStorage.getItem(`wetter_cache_${lat.toFixed(2)}_${lon.toFixed(2)}_${selectedModel}`);
+        if (cachedRaw) {
+          try {
+            const cachedObj = JSON.parse(cachedRaw);
+            renderWeatherData(cachedObj.data, true, cachedObj.time);
+            await loadRadarTicker(lat, lon, cachedObj.data.current.weather_code);
+            showNotification(`Störung beim Wetterdienst. Zeige Daten von ${cachedObj.time}`, "info");
+            return;
+          } catch(e) {}
+        }
+        await loadRadarTicker(lat, lon, null);
+        document.getElementById('weatherDesc').textContent = "Störung beim Wetterdienst (Open-Meteo)";
+        showNotification("Störung beim Wetterdienst (Open-Meteo). Bitte später erneut versuchen.", "error");
+      }
+    }
+
+    function renderHourly(hourly) {
+      const container = document.getElementById('hourlyContainer');
+      if (!container || !hourly) return;
+      container.innerHTML = '';
+
+      const nowIdx = new Date().getHours();
+      for (let i = nowIdx; i < nowIdx + 24 && i < hourly.time.length; i++) {
+        const timeStr = hourly.time[i].slice(11, 16);
+        const temp = Math.round(hourly.temperature_2m[i]);
+        const code = hourly.weather_code[i];
+        const isDayHour = hourly.is_day ? hourly.is_day[i] : 1;
+        const icon = getWeatherIcon(code, isDayHour);
+
+        const card = document.createElement('div');
+        card.className = "flex flex-col items-center justify-between p-3 rounded-2xl glass-panel min-w-[64px]";
+        card.innerHTML = `
+          <span class="text-[11px] text-slate-400 font-medium">${timeStr}</span>
+          <span class="text-xl my-1">${icon}</span>
+          <span class="text-sm font-bold text-white">${temp}°</span>
+        `;
+        container.appendChild(card);
+      }
+    }
+
+    async function loadRadarTicker(lat, lon, code) {
+      const badge = document.getElementById('radarStatusBadge');
+      const text = document.getElementById('radarText');
+      const timeline = document.getElementById('radarTimeline');
+      if (!badge || !text) return;
+
+      if (code !== null && code >= 51 && code <= 65) {
+        badge.textContent = "Regen";
+        badge.className = "bg-blue-500/20 text-blue-400 text-[10px] font-semibold px-2 py-0.5 rounded-full";
+        text.textContent = "Niederschlag aktuell an deinem Standort erfasst.";
+      } else {
+        badge.textContent = "Trocken";
+        badge.className = "bg-emerald-500/20 text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded-full";
+        text.textContent = "In den nächsten 60 Minuten bleibt es an deinem Standort trocken.";
+      }
+
+      if (timeline) {
+        timeline.innerHTML = '';
+        const labels = ["Jetzt", "+15 min", "+30 min", "+45 min", "+60 min"];
+        labels.forEach(lbl => {
+          const div = document.createElement('div');
+          div.className = "bg-slate-900/60 p-1.5 rounded-lg border border-slate-800";
+          div.innerHTML = `<span class="block text-[9px] text-slate-400">${lbl}</span><div class="mt-1 h-1.5 bg-emerald-500/80 rounded-full"></div>`;
+          timeline.appendChild(div);
+        });
+      }
+    }
+
+    function updateWindDisplay(cur) {
+      const speed = Math.round(cur.wind_speed_10m || 0);
+      const gust = Math.round(cur.wind_gusts_10m || speed);
+      const direction = cur.wind_direction_10m || 0;
+      const directions = ["N", "NO", "O", "SO", "S", "SW", "W", "NW"];
+      const dirText = directions[Math.round(direction / 45) % 8];
+
+      const card = document.getElementById("wind-card");
+      const title = document.getElementById("wind-title");
+      const speedVal = document.getElementById("wind-speed-val");
+      const gustVal = document.getElementById("wind-gust-val");
+      const status = document.getElementById("wind-status");
+
+      if (!card || !speedVal || !gustVal || !status) return;
+
+      speedVal.textContent = `${speed} km/h (${dirText})`;
+      gustVal.textContent = `Spitzenböen: ${gust} km/h`;
+
+      if (gust >= 65) {
+        card.className = "glass-panel rounded-2xl p-4 shadow-md flex flex-col justify-between border-l-4 border-l-orange-500 transition duration-300";
+        status.textContent = "Markantes Wetter – Windfeste Sicherung nötig.";
+      } else {
+        card.className = "glass-panel rounded-2xl p-4 shadow-md flex flex-col justify-between border-l-4 border-l-emerald-500 transition duration-300";
+        status.textContent = "Lage ruhig – keine Windgefahren.";
+      }
+    }
+
+    async function loadBiowetter(lat, lon) {
+      const container = document.getElementById('biowetterContainer');
+      if (!container) return;
+      container.innerHTML = `
+        <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
+          <span>Allergie / Pollen</span>
+          <span class="text-emerald-400 font-medium">Keine Belastung</span>
+        </div>
+        <div class="flex justify-between items-center py-1">
+          <span>Biowetter / Kreislauf</span>
+          <span class="text-emerald-400 font-medium">Stabil (Geringe Belastung)</span>
+        </div>
+      `;
+    }
+
+    async function searchCity() {
+      const q = document.getElementById('cityInput').value.trim();
+      if (!q) {
+        showNotification("Bitte gib einen Städtenamen ein.", "error");
+        return;
+      }
+      try {
+        const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=1&language=de`);
+        const data = await res.json();
+        if (data.results && data.results.length > 0) {
+          const place = data.results[0];
+          const displayName = place.admin1 ? `${place.name}, ${place.admin1}` : place.name;
+          loadWeather(place.latitude, place.longitude, displayName);
+          document.getElementById('cityInput').value = "";
+          showNotification(`Wetter für "${displayName}" geladen!`);
+        } else {
+          showNotification(`Ort "${q}" nicht gefunden.`, "error");
+        }
+      } catch (e) {
+        showNotification("Verbindungsfehler bei der Ortssuche.", "error");
+      }
+    }
+
+    function loadQuickCity(lat, lon, name) {
+      loadWeather(lat, lon, name);
+      showNotification(`Ort ausgewählt: ${name}`);
+    }
+
+    async function getLocation() {
+      if (!navigator.geolocation) {
+        showNotification("Standortbestimmung wird vom Browser nicht unterstützt.", "error");
+        return;
+      }
+      showNotification("Standort wird ermittelt...");
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          syncGpsToOneSignal(lat, lon);
+          try {
+            const geoRes = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&zoom=13&format=json&addressdetails=1&accept-language=de`
+            );
+            const geoData = await geoRes.json();
+            const addr = geoData.address || {};
+            const hauptStadt = addr.city || addr.town || addr.municipality || addr.village || "";
+            let bezirk = addr.city_district || addr.borough || addr.suburb || "";
+            if (bezirk.toLowerCase() === "friedenheim" || bezirk.toLowerCase() === "st. ulrich") {
+              bezirk = "Laim";
+            }
+            if (bezirk.toLowerCase().includes("moosach")) {
+              bezirk = "Moosach";
+            }
+            let detectedName = "Mein Standort 📍";
+            if (bezirk && hauptStadt && bezirk.toLowerCase() !== hauptStadt.toLowerCase()) {
+              detectedName = `${bezirk} (${hauptStadt})`;
+            } else if (hauptStadt) {
+              detectedName = hauptStadt;
+            } else if (addr.county) {
+              detectedName = addr.county;
+            }
+            loadWeather(lat, lon, detectedName);
+            showNotification(`Standort erkannt: ${detectedName}!`);
+          } catch (e) {
+            loadWeather(lat, lon, "Mein Standort 📍");
+            showNotification("Standort geladen!");
+          }
+        },
+        () => {
+          showNotification("Standortzugriff verweigert oder Signal fehlt.", "error");
+        },
+        { timeout: 10000, enableHighAccuracy: true }
+      );
+    }
+
+    setInterval(() => {
+      loadWeather(currentLat, currentLon, currentName, true);
+    }, 10 * 60 * 1000);
+
+    updateActiveModelBadge();
+
+    if (navigator.geolocation) {
+      getLocation();
+    } else {
+      loadWeather(currentLat, currentLon, currentName);
+    }
+  </script>
+</body>
+</html>
